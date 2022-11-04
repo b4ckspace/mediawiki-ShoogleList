@@ -27,6 +27,8 @@ function wfShoogleList() {
     new ShoogleListSortable();
 }
 
+use MediaWiki\MediaWikiServices;
+
 class ShoogleListSortable {
 
     private static $QUERY_PARAMETER = 'shoogleOrder';
@@ -102,7 +104,7 @@ class ShoogleList {
     }
 
     function hookShoogle($category, $argv, $parser) {
-        $parser->disableCache();
+        $parser->getOutput()->updateCacheExpiry(0);
 
         // Merge user specific settings with own defaults
         $this->settings = array_merge($this->settings, $argv);
@@ -272,7 +274,8 @@ class ShoogleList {
 
     private function get_articles_by_category($Title, $orderByField = 'cl_sortkey', $orderByDirection = 'DESC') {
 
-        $dbr = wfGetDB(DB_SLAVE);
+        $lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+        $dbr = $lb->getConnectionRef(DB_REPLICA);
 
         // query database
         $res = $dbr->select(
